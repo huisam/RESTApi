@@ -4,16 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(EventController.class)
 class EventControllerTest {
@@ -23,6 +24,9 @@ class EventControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private EventRepository repository;
 
     @Test
     void createEvent() throws Exception {
@@ -40,17 +44,19 @@ class EventControllerTest {
                 .location("강남")
                 .build();
 
+        /* when */
+        event.setId(10L);
+        when(repository.save(event)).thenReturn(event);
+
+        /* then */
         mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(event))
         )
                 .andDo(print())
+                .andExpect(header().exists("Location"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").exists());
-        /* when */
-
-        /* then */
-
     }
 }
