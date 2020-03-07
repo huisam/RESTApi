@@ -3,6 +3,7 @@ package com.inflearn.rest.events;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +38,14 @@ public class EventController {
 
         final Event event = modelMapper.map(eventDto, Event.class);
         final Event newEvent = this.repository.save(event);
-        URI createdURI = linkTo(EventController.class).slash(newEvent.getId()).toUri();
-        return ResponseEntity.created(createdURI).body(newEvent);
+
+        WebMvcLinkBuilder linkBuilder = linkTo(EventController.class).slash(newEvent.getId());
+        URI createdURI = linkBuilder.toUri();
+
+        EventResource eventResource = new EventResource(newEvent);
+        eventResource.add(linkTo(EventController.class).withRel("query-events"));
+        eventResource.add(linkBuilder.withSelfRel());
+        eventResource.add(linkBuilder.withRel("update-event"));
+        return ResponseEntity.created(createdURI).body(eventResource);
     }
 }
