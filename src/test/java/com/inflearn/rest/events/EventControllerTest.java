@@ -1,7 +1,6 @@
 package com.inflearn.rest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith({SpringExtension.class})
 @SpringBootTest
@@ -30,7 +29,7 @@ class EventControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void createEvent() throws Exception {
+    void createEvent_BadRequest() throws Exception {
         /* given */
         Event event = Event.builder()
                 .name("Spring")
@@ -57,10 +56,6 @@ class EventControllerTest {
                 .content(objectMapper.writeValueAsString(event))
         )
                 .andDo(print())
-                .andExpect(header().exists("Location"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(Matchers.not(100L)))
-                .andExpect(jsonPath("free").value(Matchers.not(true)))
-                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
+                .andExpect(status().isBadRequest());
     }
 }
