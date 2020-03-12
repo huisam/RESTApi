@@ -14,14 +14,14 @@ repositories {
 }
 
 ext {
-    set('snippetsDir', file("build/generated-snippets"))
+    snippetsDir = file('build/generated-snippets')
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.projectlombok:lombok:1.18.12'
+    compileOnly('org.projectlombok:lombok')
     implementation 'org.modelmapper:modelmapper:2.3.6'
     implementation 'com.h2database:h2:1.4.200'
     runtimeOnly 'org.postgresql:postgresql'
@@ -39,4 +39,11 @@ test {
 asciidoctor {
     inputs.dir snippetsDir
     dependsOn test
+}
+
+bootJar {
+    dependsOn asciidoctor
+    from ("${asciidoctor.outputDir}/html5") { // (4)
+        into 'static/docs'
+    }
 }
