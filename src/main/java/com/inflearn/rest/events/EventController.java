@@ -1,5 +1,6 @@
 package com.inflearn.rest.events;
 
+import com.inflearn.rest.commons.ErrorsResource;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
@@ -28,12 +29,12 @@ public class EventController {
     @PostMapping
     public ResponseEntity postEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
 
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
 
         final Event event = modelMapper.map(eventDto, Event.class);
@@ -47,5 +48,9 @@ public class EventController {
         eventResource.add(linkBuilder.withSelfRel());
         eventResource.add(linkBuilder.withRel("update-event"));
         return ResponseEntity.created(createdURI).body(eventResource);
+    }
+
+    private ResponseEntity<ErrorsResource> badRequest(Errors errors) {
+        return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }
 }
