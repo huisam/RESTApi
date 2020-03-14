@@ -3,17 +3,19 @@ package com.inflearn.rest.events;
 import com.inflearn.rest.commons.ErrorsResource;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -43,14 +45,23 @@ public class EventController {
         WebMvcLinkBuilder linkBuilder = linkTo(EventController.class).slash(newEvent.getId());
         URI createdURI = linkBuilder.toUri();
 
-        EventResource eventResource = new EventResource(newEvent);
-        eventResource.add(linkTo(EventController.class).withRel("query-events"));
-        eventResource.add(linkBuilder.withSelfRel());
-        eventResource.add(linkBuilder.withRel("update-event"));
+        List<Link> links = List.of(linkTo(EventController.class).withRel("query-events"),
+                linkBuilder.withSelfRel(), linkBuilder.withRel("update-event")
+        );
+        EventResource eventResource = new EventResource(links, newEvent);
         return ResponseEntity.created(createdURI).body(eventResource);
     }
 
     private ResponseEntity<ErrorsResource> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+    }
+
+
+    @GetMapping
+    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+        Page<Event> pages = repository.findAll(pageable);
+        var pagedModel = assembler.toModel(pages, EventResource::new);
+        pagedModel.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
+        return ResponseEntity.ok(pagedModel);
     }
 }
