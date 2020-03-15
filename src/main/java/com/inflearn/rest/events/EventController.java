@@ -69,7 +69,7 @@ public class EventController {
     @GetMapping("/{id}")
     public ResponseEntity getEvent(@PathVariable Long id) {
         final Optional<Event> optionalEvent = this.repository.findById(id);
-        
+
         if (optionalEvent.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -77,5 +77,33 @@ public class EventController {
             eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
             return ResponseEntity.ok(eventResource);
         }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity putEvent(@PathVariable Long id,
+                                   @RequestBody @Valid EventDto eventDto,
+                                   Errors errors) {
+        final Optional<Event> optionalEvent = this.repository.findById(id);
+
+        if (optionalEvent.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+
+        this.eventValidator.validate(eventDto, errors);
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+
+        final Event existingEvent = optionalEvent.get();
+        this.modelMapper.map(eventDto, existingEvent);
+        final Event savedEvent = repository.save(existingEvent);
+
+        EventResource eventResource = new EventResource(savedEvent);
+        eventResource.add(new Link("/docs/index.html#resources-events-put").withRel("profile"));
+        return ResponseEntity.ok(eventResource);
     }
 }
