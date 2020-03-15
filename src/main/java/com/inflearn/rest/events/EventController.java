@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -63,5 +64,18 @@ public class EventController {
         var pagedModel = assembler.toModel(pages, EventResource::new);
         pagedModel.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
         return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity getEvent(@PathVariable Long id) {
+        final Optional<Event> optionalEvent = this.repository.findById(id);
+        
+        if (optionalEvent.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            EventResource eventResource = new EventResource(optionalEvent.get());
+            eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
+            return ResponseEntity.ok(eventResource);
+        }
     }
 }
