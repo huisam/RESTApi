@@ -1,5 +1,6 @@
 package com.inflearn.rest.events;
 
+import com.inflearn.rest.accounts.Account;
 import lombok.*;
 
 import javax.persistence.*;
@@ -45,4 +46,6 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
 
+    @ManyToOne
+    private Account manager;
 }
