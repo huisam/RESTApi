@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Set;
@@ -23,6 +24,9 @@ class AccountServiceTest {
     @Autowired
     private AccountRepository repository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Test
     @DisplayName("인증된 유저가 주어졌을 때 제대로 인증 서비스에 저장되는지 테스트")
     void findByUserName() {
@@ -34,13 +38,13 @@ class AccountServiceTest {
                 .password(password)
                 .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                 .build();
-        this.repository.save(account);
+        this.service.save(account);
 
         /* when */
         final UserDetails userDetails = service.loadUserByUsername(email);
 
         /* then */
-        assertThat(userDetails.getPassword()).isEqualTo(password);
+        assertThat(this.passwordEncoder.matches(password, userDetails.getPassword())).isTrue();
     }
 
     @Test
