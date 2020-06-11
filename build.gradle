@@ -7,7 +7,7 @@ plugins {
 
 group = 'com.inflearn'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = '14'
 
 repositories {
     mavenCentral()
@@ -22,12 +22,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.2.5.RELEASE'
     compileOnly('org.projectlombok:lombok')
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.modelmapper:modelmapper:2.3.6'
     runtimeOnly 'org.postgresql:postgresql'
     asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'com.h2database:h2:1.4.200'
+    testImplementation "org.springframework.security:spring-security-test"
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
@@ -46,7 +48,7 @@ asciidoctor {
 
 bootJar {
     dependsOn asciidoctor
-    from ("${asciidoctor.outputDir}/html5") { // (4)
+    from("${asciidoctor.outputDir}/html5") { // (4)
         into 'static/docs'
     }
 }
